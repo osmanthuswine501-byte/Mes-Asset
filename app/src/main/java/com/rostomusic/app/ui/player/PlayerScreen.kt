@@ -80,6 +80,14 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Outline
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection as UiLayoutDirection
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
@@ -647,16 +655,17 @@ private fun PlayerVisualArea(
     ) {
         HorizontalPager(
             state = pagerState,
-            contentPadding = PaddingValues(horizontal = 32.dp),
-            pageSpacing = Space.x3,
+            contentPadding = PaddingValues(horizontal = 24.dp),
+            pageSpacing = 8.dp,
             modifier = Modifier.fillMaxWidth(),
         ) { page ->
             val pageSong = pages[page]
-            val signedOffset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
-            val offset = signedOffset.absoluteValue
-            val uniformScale = floatLerp(1f, 0.91f, offset)
-            val corner = lerp(16.dp, 28.dp, offset)
-            val elevation = lerp(8.dp, 2.dp, offset)
+            // pageOffset > 0 : la carte est à droite du centre ; pageOffset < 0 : la carte est à gauche du centre
+            val pageOffset = ((page - pagerState.currentPage) - pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
+            val absOffset = pageOffset.absoluteValue
+            // M3 Hero Carousel Masking : la largeur visible se comprime jusqu'à 22 % sur les bords sans écraser l'image
+            val maskFraction = floatLerp(1f, 0.22f, absOffset)
+            val corner = lerp(24.dp, 28.dp, absOffset)
             val shared = if (page == safeIndex) {
                 with(sharedScope) {
                     Modifier.sharedElement(rememberSharedContentState("cover"), visibilityScope)
@@ -664,32 +673,50 @@ private fun PlayerVisualArea(
             } else {
                 Modifier
             }
-            Card(
-                shape = RoundedCornerShape(corner),
-                elevation = CardDefaults.cardElevation(defaultElevation = elevation),
+            val heroMaskShape = remember(pageOffset, maskFraction, corner) {
+                object : Shape {
+                    override fun createOutline(
+                        size: androidx.compose.ui.geometry.Size,
+                        layoutDirection: UiLayoutDirection,
+                        density: Density,
+                    ): Outline {
+                        val r = with(density) { corner.toPx() }
+                        val w = size.width * maskFraction
+                        // Si la carte est à gauche (pageOffset < 0), son masque reste collé au bord droit (vers le centre)
+                        // Si la carte est à droite (pageOffset > 0), son masque reste collé au bord gauche (vers le centre)
+                        val left = if (pageOffset < 0f) size.width - w else 0f
+                        val right = left + w
+                        return Outline.Rounded(
+                            RoundRect(
+                                rect = Rect(left, 0f, right, size.height),
+                                cornerRadius = CornerRadius(r, r),
+                            )
+                        )
+                    }
+                }
+            }
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .graphicsLayer {
-                        scaleX = uniformScale
-                        scaleY = uniformScale
+                        shape = heroMaskShape
+                        clip = true
                     }
                     .then(shared),
+                contentAlignment = Alignment.Center,
             ) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    val parallaxMod = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            scaleX = 1.16f
-                            scaleY = 1.16f
-                            translationX = signedOffset * 36.dp.toPx()
-                        }
-                    if (visual == PlayerVisual.VINYL && page == safeIndex) {
-                        Vinyl(pageSong, pageSong.album.ifEmpty { pageSong.title }, playing, Modifier.fillMaxSize())
-                        Tonearm(playing, Modifier.fillMaxSize())
-                    } else {
-                        CoverArt(pageSong, parallaxMod, radius = corner)
+                val parallaxMod = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        // Parallaxe interne : l'image garde son ratio 1:1 et glisse doucement sous la fenêtre masquée
+                        translationX = pageOffset * 42.dp.toPx()
                     }
+                if (visual == PlayerVisual.VINYL && page == safeIndex) {
+                    Vinyl(pageSong, pageSong.album.ifEmpty { pageSong.title }, playing, Modifier.fillMaxSize())
+                    Tonearm(playing, Modifier.fillMaxSize())
+                } else {
+                    CoverArt(pageSong, parallaxMod, radius = 0.dp)
                 }
             }
         }

@@ -21,6 +21,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -104,18 +108,28 @@ private fun Cover(item: HomeItem, modifier: Modifier, radius: Dp, round: Boolean
 @Composable
 private fun isNow(item: HomeItem): Boolean = item.song != null && item.song.id == com.rostomusic.app.core.design.LocalNowPlaying.current.songId
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TwoLines(item: HomeItem, modifier: Modifier = Modifier, center: Boolean = false, onImage: Boolean = false) {
     val c = Rosto.colors
-    Column(modifier) {
+    Column(modifier.fillMaxWidth().padding(horizontal = 2.dp)) {
         Text(
-            item.title, style = Rosto.type.bodyStrong, color = if (onImage) Color.White else c.textPrimary, maxLines = 1,
-            overflow = TextOverflow.Ellipsis, textAlign = if (center) TextAlign.Center else TextAlign.Start, modifier = Modifier.fillMaxWidth(),
+            text = item.title,
+            style = MaterialTheme.typography.titleSmallEmphasized,
+            color = if (onImage) Color.White else MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = if (center) TextAlign.Center else TextAlign.Start,
+            modifier = Modifier.fillMaxWidth(),
         )
         if (item.subtitle.isNotEmpty()) {
             Text(
-                item.subtitle, style = Rosto.type.label, color = if (onImage) Color.White.copy(alpha = 0.85f) else c.textSecondary,
-                maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = if (center) TextAlign.Center else TextAlign.Start,
+                text = item.subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (onImage) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = if (center) TextAlign.Center else TextAlign.Start,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -178,28 +192,66 @@ private fun WideRow(items: List<HomeItem>, round: Boolean) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PortraitRow(items: List<HomeItem>) {
-    LazyRow(contentPadding = edge, horizontalArrangement = Arrangement.spacedBy(Space.x3)) {
-        items(items, key = { it.key }) { item ->
-            Column(Modifier.width(120.dp).clip(RoundedCornerShape(Radius.tile)).clickable(role = Role.Button, onClick = item.onClick)) {
-                Cover(item, Modifier.fillMaxWidth().height(160.dp), 20.dp)
-                Spacer(Modifier.height(Space.x2))
-                TwoLines(item)
-            }
+    val carouselState = rememberCarouselState { items.size }
+    HorizontalMultiBrowseCarousel(
+        state = carouselState,
+        preferredItemWidth = 156.dp,
+        itemSpacing = Space.x3,
+        contentPadding = edge,
+        modifier = Modifier.fillMaxWidth(),
+    ) { index ->
+        val item = items[index]
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.Button, onClick = item.onClick),
+        ) {
+            Cover(
+                item = item,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(168.dp)
+                    .maskClip(MaterialTheme.shapes.extraLarge),
+                radius = 0.dp,
+            )
+            Spacer(Modifier.height(Space.x2))
+            TwoLines(item)
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SquareRow(items: List<HomeItem>, size: Dp, round: Boolean, centered: Boolean = false) {
-    LazyRow(contentPadding = edge, horizontalArrangement = Arrangement.spacedBy(Space.x3)) {
-        items(items, key = { it.key }) { item ->
-            Column(Modifier.width(size).clip(RoundedCornerShape(Radius.tile)).clickable(role = Role.Button, onClick = item.onClick)) {
-                Cover(item, Modifier.size(size), 24.dp, round)
-                Spacer(Modifier.height(Space.x2))
-                TwoLines(item, center = centered)
-            }
+    val carouselState = rememberCarouselState { items.size }
+    HorizontalMultiBrowseCarousel(
+        state = carouselState,
+        preferredItemWidth = size,
+        itemSpacing = Space.x3,
+        contentPadding = edge,
+        modifier = Modifier.fillMaxWidth(),
+    ) { index ->
+        val item = items[index]
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.Button, onClick = item.onClick),
+            horizontalAlignment = if (centered) Alignment.CenterHorizontally else Alignment.Start,
+        ) {
+            Cover(
+                item = item,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(size)
+                    .maskClip(if (round) CircleShape else MaterialTheme.shapes.extraLarge),
+                radius = 0.dp,
+                round = round,
+            )
+            Spacer(Modifier.height(Space.x2))
+            TwoLines(item, center = centered)
         }
     }
 }
@@ -296,18 +348,33 @@ private fun Staggered(items: List<HomeItem>) {
 }
 
 /** Artists as bento cards: square photo, name and count inside one card. */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ArtistCards(items: List<HomeItem>) {
-    val c = Rosto.colors
-    LazyRow(contentPadding = edge, horizontalArrangement = Arrangement.spacedBy(Space.x3)) {
-        items(items, key = { it.key }) { item ->
-            Column(
-                Modifier.width(140.dp).clip(RoundedCornerShape(Radius.tile)).background(c.card)
-                    .clickable(role = Role.Button, onClick = item.onClick),
-            ) {
-                Cover(item, Modifier.fillMaxWidth().aspectRatio(1f), 0.dp)
-                TwoLines(item, Modifier.padding(horizontal = Space.x3, vertical = Space.x3))
-            }
+    val carouselState = rememberCarouselState { items.size }
+    HorizontalMultiBrowseCarousel(
+        state = carouselState,
+        preferredItemWidth = 156.dp,
+        itemSpacing = Space.x3,
+        contentPadding = edge,
+        modifier = Modifier.fillMaxWidth(),
+    ) { index ->
+        val item = items[index]
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(role = Role.Button, onClick = item.onClick),
+        ) {
+            Cover(
+                item = item,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(156.dp)
+                    .maskClip(MaterialTheme.shapes.extraLarge),
+                radius = 0.dp,
+            )
+            Spacer(Modifier.height(Space.x2))
+            TwoLines(item)
         }
     }
 }
