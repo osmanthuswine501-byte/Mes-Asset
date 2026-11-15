@@ -50,6 +50,8 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -279,6 +281,7 @@ fun LineSeekBar(positionMs: Long, durationMs: Long, onSeek: (Long) -> Unit, modi
     }
 }
 
+@Composable
 @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 fun WaveSeekBar(bars: FloatArray, positionMs: Long, durationMs: Long, onSeek: (Long) -> Unit, modifier: Modifier = Modifier) {
     val activeColor = MaterialTheme.colorScheme.primary
@@ -303,6 +306,7 @@ fun WaveSeekBar(bars: FloatArray, positionMs: Long, durationMs: Long, onSeek: (L
     }
 }
 
+@Composable
 @OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 fun MiniPlayer(
     state: PlayerState,
@@ -427,7 +431,7 @@ fun BottomBar(route: String?, onNavigate: (Tab) -> Unit) {
         for (t in NAV_TABS) {
             val selected = route == t.tab.pattern
             val label = stringResource(t.label)
-            androidx.compose.material3.NavigationBarItem(
+            NavigationBarItem(
                 modifier = Modifier.padding(horizontal = 0.dp),
                 selected = selected,
                 onClick = {
@@ -451,7 +455,7 @@ fun BottomBar(route: String?, onNavigate: (Tab) -> Unit) {
                     )
                 },
                 alwaysShowLabel = true,
-                colors = androidx.compose.material3.NavigationBarItemDefaults.colors(
+                colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     selectedTextColor = MaterialTheme.colorScheme.onSurface,
                     indicatorColor = MaterialTheme.colorScheme.secondaryContainer,

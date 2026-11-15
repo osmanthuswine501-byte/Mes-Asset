@@ -64,8 +64,6 @@ private class PressNode(private val source: InteractionSource) : Modifier.Node()
  * while held and comes back in 160 ms. Put it first in the chain so the background scales too, and
  * pass the same [source] to the element's `clickable`. Reduced motion keeps only the tint.
  */
-fun @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun Modifier.pressScale(source: InteractionSource): Modifier = composed {
     val pressed by source.collectIsPressedAsState()

@@ -84,6 +84,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -598,13 +599,14 @@ private fun PlayerVisualArea(
 ) {
     val pages = queue.ifEmpty { listOf(song) }
     val safeIndex = queueIndex.coerceIn(0, pages.lastIndex)
-    val pagerState = rememberPagerState(initialPage = safeIndex) { pages.size }
+    val reduceMotion = LocalReduceMotion.current
+    val spatialSpec = if (reduceMotion) snap() else MaterialTheme.motionScheme.defaultSpatialSpec()
 
     LaunchedEffect(safeIndex, pages.size) {
         if (pagerState.currentPage != safeIndex && !pagerState.isScrollInProgress) {
             pagerState.animateScrollToPage(
                 page = safeIndex,
-                animationSpec = if (LocalReduceMotion.current) snap() else MaterialTheme.motionScheme.defaultSpatialSpec(),
+                animationSpec = spatialSpec,
             )
         }
     }

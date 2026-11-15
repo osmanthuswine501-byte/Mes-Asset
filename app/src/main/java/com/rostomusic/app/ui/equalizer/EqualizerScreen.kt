@@ -37,8 +37,12 @@ import androidx.compose.material3.MediumFlexibleTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.Color
+import com.rostomusic.app.core.design.RostoColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -485,3 +489,11 @@ private fun EffectCard(
         }
     }
 }
+
+@Composable
+fun switchColors(c: RostoColors): SwitchColors = SwitchDefaults.colors(
+    checkedThumbColor = c.accent,
+    checkedTrackColor = c.accentContainer.takeIf { it != Color.Transparent } ?: c.accent.copy(alpha = 0.35f),
+    uncheckedThumbColor = c.textSecondary,
+    uncheckedTrackColor = c.surfaceAlt,
+)

@@ -72,9 +72,8 @@ import com.rostomusic.app.ui.library.LibraryScreen
 import com.rostomusic.app.ui.lyrics.LyricsEditorScreen
 import com.rostomusic.app.ui.onboarding.OnboardingScreen
 import com.rostomusic.app.ui.player.BottomBar
+import com.rostomusic.app.ui.player.BottomBarHeight
 import com.rostomusic.app.ui.player.SideNavRail
-import com.rostomusic.app.ui.player.BottomBar
-import com.rostomusic.app.ui.player.SideNavRailHeight
 import com.rostomusic.app.ui.player.MiniPlayer
 import com.rostomusic.app.ui.player.MiniPlayerHeight
 import com.rostomusic.app.ui.player.PlayerScreen
@@ -94,8 +93,7 @@ fun RostoApp(app: AppViewModel) {
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun MainScaffold(app: AppViewModel) {
     val nav = rememberNavController()

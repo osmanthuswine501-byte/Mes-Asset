@@ -237,9 +237,8 @@ class CollectionViewModel @Inject constructor(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun CollectionScreen(nav: NavController) {
     val app = LocalApp.current
     val settings = LocalSettings.current
