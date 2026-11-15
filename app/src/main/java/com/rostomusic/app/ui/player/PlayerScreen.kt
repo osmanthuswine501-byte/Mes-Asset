@@ -79,6 +79,9 @@ import com.rostomusic.app.core.design.rememberCoverTone
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -100,6 +103,8 @@ import com.rostomusic.app.core.design.AccentScope
 import com.rostomusic.app.core.design.Badge
 import com.rostomusic.app.core.design.CoverArt
 import com.rostomusic.app.core.design.IconBtn
+import com.rostomusic.app.core.design.morphCorner
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import com.rostomusic.app.core.design.LocalReduceMotion
 import com.rostomusic.app.core.design.Pill
 import com.rostomusic.app.core.design.Radius
@@ -212,8 +217,29 @@ fun PlayerScreen(nav: NavController, sharedScope: SharedTransitionScope, visibil
                         Column(Modifier.weight(1f)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    song.title, style = MaterialTheme.typography.headlineMediumEmphasized, color = MaterialTheme.colorScheme.onSurface, maxLines = 1,
-                                    modifier = Modifier.weight(1f, fill = false).basicMarquee(iterations = if (LocalReduceMotion.current) 0 else 1, initialDelayMillis = 1500),
+                                    text = song.title,
+                                    style = MaterialTheme.typography.headlineMediumEmphasized,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 1,
+                                    modifier = Modifier
+                                        .weight(1f, fill = false)
+                                        .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                                        .drawWithContent {
+                                            drawContent()
+                                            drawRect(
+                                                brush = Brush.horizontalGradient(
+                                                    0f to Color.Transparent,
+                                                    0.08f to Color.Black,
+                                                    0.92f to Color.Black,
+                                                    1f to Color.Transparent,
+                                                ),
+                                                blendMode = BlendMode.DstIn,
+                                            )
+                                        }
+                                        .basicMarquee(
+                                            iterations = if (LocalReduceMotion.current) 0 else 1,
+                                            initialDelayMillis = 1500,
+                                        ),
                                 )
                                 if (com.rostomusic.app.core.design.LocalSongQuality.current[song.id]?.explicit == true) {
                                     Spacer(Modifier.width(Space.x2))
@@ -276,160 +302,109 @@ fun PlayerScreen(nav: NavController, sharedScope: SharedTransitionScope, visibil
                     Transport(state, onHaptic = haptic)
                     Spacer(Modifier.height(Space.x3))
 
-                    // Connected Button Group M3 Expressive (hauteur M = 48.dp, style tonal unifié, shape morphing)
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerLowest,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            val motionSpec = if (LocalReduceMotion.current) snap<androidx.compose.ui.unit.Dp>() else MaterialTheme.motionScheme.defaultSpatialSpec()
-
-                            val shuffleDesc = stringResource(if (state.shuffle) R.string.cd_shuffle_on else R.string.cd_shuffle_off)
-                            val shuffleInnerCorner by animateDpAsState(
-                                targetValue = if (state.shuffle) 24.dp else 8.dp,
-                                animationSpec = motionSpec,
-                                label = "shuffleCorner",
-                            )
-                            Surface(
-                                onClick = { haptic(); app.player.toggleShuffle() },
-                                shape = RoundedCornerShape(
-                                    topStart = 24.dp,
-                                    bottomStart = 24.dp,
-                                    topEnd = shuffleInnerCorner,
-                                    bottomEnd = shuffleInnerCorner,
-                                ),
-                                color = if (state.shuffle) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(48.dp)
-                                    .semantics {
-                                        role = Role.Button
-                                        contentDescription = shuffleDesc
-                                        stateDescription = if (state.shuffle) "Activé" else "Désactivé"
-                                    },
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    RIcon(
-                                        R.drawable.ic_shuffle,
-                                        null,
-                                        tint = if (state.shuffle) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        size = 20.dp,
-                                    )
-                                }
-                            }
-
-                            val repeatIcon = if (state.repeat == QueueOps.Repeat.ONE) R.drawable.ic_repeat_1 else R.drawable.ic_repeat
-                            val repeatDesc = stringResource(
-                                when (state.repeat) {
-                                    QueueOps.Repeat.OFF -> R.string.cd_repeat_off
-                                    QueueOps.Repeat.ALL -> R.string.cd_repeat_all
-                                    QueueOps.Repeat.ONE -> R.string.cd_repeat_one
-                                }
-                            )
-                            val repeatActive = state.repeat != QueueOps.Repeat.OFF
-                            val repeatCorner by animateDpAsState(
-                                targetValue = if (repeatActive) 24.dp else 8.dp,
-                                animationSpec = motionSpec,
-                                label = "repeatCorner",
-                            )
-                            Surface(
-                                onClick = { haptic(); app.player.cycleRepeat() },
-                                shape = RoundedCornerShape(repeatCorner),
-                                color = if (repeatActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(48.dp)
-                                    .semantics {
-                                        role = Role.Button
-                                        contentDescription = repeatDesc
-                                        stateDescription = repeatDesc
-                                    },
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    RIcon(
-                                        repeatIcon,
-                                        null,
-                                        tint = if (repeatActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
-                                        size = 20.dp,
-                                    )
-                                }
-                            }
-
-                            val lyricsDesc = stringResource(R.string.lyrics)
-                            Surface(
-                                onClick = { app.playerPanel.value = PlayerPanel.LYRICS },
-                                shape = RoundedCornerShape(
-                                    topStart = 8.dp,
-                                    bottomStart = 8.dp,
-                                    topEnd = 24.dp,
-                                    bottomEnd = 24.dp,
-                                ),
-                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .height(48.dp)
-                                    .semantics {
-                                        role = Role.Button
-                                        contentDescription = lyricsDesc
-                                    },
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    RIcon(
-                                        R.drawable.ic_captions,
-                                        null,
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        size = 20.dp,
-                                    )
-                                }
-                            }
-                        }
-                    }
                     Spacer(Modifier.height(Space.x4))
 
-                    // Photo 1 : 2 chips compactes aux extrémités gauche et droite (Sortie audio & File d'attente)
+                    // Rangée du bas : Sortie audio | Shuffle/Repeat fusionnés (tap = activer, doubleTap = basculer mode) | File d'attente
+                    var isShuffleMode by rememberSaveable { mutableStateOf(true) }
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(Space.x2),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         val outputLabel = stringResource(R.string.audio_output)
+                        val outputPress = remember { MutableInteractionSource() }
+                        val outputCorner = morphCorner(outputPress, rest = 24.dp, pressed = 12.dp)
                         Surface(
                             onClick = { showOutput = true },
-                            shape = CircleShape,
+                            interactionSource = outputPress,
+                            shape = RoundedCornerShape(outputCorner),
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            modifier = Modifier.semantics { role = Role.Button; contentDescription = outputLabel },
+                            modifier = Modifier
+                                .height(48.dp)
+                                .semantics { role = Role.Button; contentDescription = outputLabel },
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = Space.x3, vertical = Space.x2),
+                                modifier = Modifier.padding(horizontal = Space.x3),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(Space.x2),
                             ) {
-                                RIcon(R.drawable.ic_speaker, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, size = 16.dp)
-                                Text(outputLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                                RIcon(R.drawable.ic_speaker, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, size = 18.dp)
+                                Text(outputLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            }
+                        }
+
+                        val repeatIcon = if (state.repeat == QueueOps.Repeat.ONE) R.drawable.ic_repeat_1 else R.drawable.ic_repeat
+                        val repeatDesc = stringResource(
+                            when (state.repeat) {
+                                QueueOps.Repeat.OFF -> R.string.cd_repeat_off
+                                QueueOps.Repeat.ALL -> R.string.cd_repeat_all
+                                QueueOps.Repeat.ONE -> R.string.cd_repeat_one
+                            }
+                        )
+                        val shuffleDesc = stringResource(if (state.shuffle) R.string.cd_shuffle_on else R.string.cd_shuffle_off)
+                        val modeActive = if (isShuffleMode) state.shuffle else state.repeat != QueueOps.Repeat.OFF
+                        val modeIcon = if (isShuffleMode) R.drawable.ic_shuffle else repeatIcon
+                        val modeDesc = if (isShuffleMode) shuffleDesc else repeatDesc
+
+                        val modeCorner by animateDpAsState(
+                            targetValue = if (modeActive) 16.dp else 24.dp,
+                            animationSpec = if (LocalReduceMotion.current) snap() else MaterialTheme.motionScheme.defaultSpatialSpec(),
+                            label = "modeCorner",
+                        )
+                        Surface(
+                            shape = RoundedCornerShape(modeCorner),
+                            color = if (modeActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(modeCorner))
+                                .pointerInput(isShuffleMode) {
+                                    detectTapGestures(
+                                        onTap = {
+                                            haptic()
+                                            if (isShuffleMode) app.player.toggleShuffle() else app.player.cycleRepeat()
+                                        },
+                                        onDoubleTap = {
+                                            haptic()
+                                            isShuffleMode = !isShuffleMode
+                                        },
+                                    )
+                                }
+                                .semantics {
+                                    role = Role.Button
+                                    contentDescription = modeDesc
+                                    stateDescription = if (isShuffleMode) "Mode Aléatoire" else "Mode Répéter"
+                                },
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                RIcon(
+                                    modeIcon,
+                                    null,
+                                    tint = if (modeActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    size = 20.dp,
+                                )
                             }
                         }
 
                         val queueLabel = stringResource(R.string.queue)
+                        val queuePress = remember { MutableInteractionSource() }
+                        val queueCorner = morphCorner(queuePress, rest = 24.dp, pressed = 12.dp)
                         Surface(
                             onClick = { app.playerPanel.value = PlayerPanel.QUEUE },
-                            shape = CircleShape,
+                            interactionSource = queuePress,
+                            shape = RoundedCornerShape(queueCorner),
                             color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            modifier = Modifier.semantics { role = Role.Button; contentDescription = queueLabel },
+                            modifier = Modifier
+                                .height(48.dp)
+                                .semantics { role = Role.Button; contentDescription = queueLabel },
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = Space.x3, vertical = Space.x2),
+                                modifier = Modifier.padding(horizontal = Space.x3),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(Space.x2),
                             ) {
-                                RIcon(R.drawable.ic_list_music, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, size = 16.dp)
-                                Text(queueLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                                RIcon(R.drawable.ic_list_music, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, size = 18.dp)
+                                Text(queueLabel, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                             }
                         }
                     }
@@ -513,7 +488,16 @@ fun PlayerScreen(nav: NavController, sharedScope: SharedTransitionScope, visibil
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(Space.x3),
                         ) {
-                            CoverArt(song, Modifier.size(44.dp), Radius.small)
+                            val closeLyricsDesc = stringResource(R.string.close)
+                            CoverArt(
+                                song = song,
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(RoundedCornerShape(Radius.small))
+                                    .clickable(role = Role.Button) { app.playerPanel.value = PlayerPanel.NONE }
+                                    .semantics { contentDescription = closeLyricsDesc },
+                                radius = Radius.small,
+                            )
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text(
@@ -670,8 +654,7 @@ private fun PlayerVisualArea(
             val pageSong = pages[page]
             val signedOffset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
             val offset = signedOffset.absoluteValue
-            val scaleXVal = floatLerp(1f, 0.78f, offset)
-            val scaleYVal = floatLerp(1f, 0.94f, offset)
+            val uniformScale = floatLerp(1f, 0.91f, offset)
             val corner = lerp(16.dp, 28.dp, offset)
             val elevation = lerp(8.dp, 2.dp, offset)
             val shared = if (page == safeIndex) {
@@ -688,8 +671,8 @@ private fun PlayerVisualArea(
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .graphicsLayer {
-                        scaleX = scaleXVal
-                        scaleY = scaleYVal
+                        scaleX = uniformScale
+                        scaleY = uniformScale
                     }
                     .then(shared),
             ) {
@@ -697,9 +680,9 @@ private fun PlayerVisualArea(
                     val parallaxMod = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
-                            scaleX = 1.12f
-                            scaleY = 1.12f
-                            translationX = signedOffset * 28.dp.toPx()
+                            scaleX = 1.16f
+                            scaleY = 1.16f
+                            translationX = signedOffset * 36.dp.toPx()
                         }
                     if (visual == PlayerVisual.VINYL && page == safeIndex) {
                         Vinyl(pageSong, pageSong.album.ifEmpty { pageSong.title }, playing, Modifier.fillMaxSize())
@@ -725,14 +708,15 @@ private fun Transport(state: PlayerState, onHaptic: () -> Unit) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Space.x3, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(Space.x2),
         ) {
             Surface(
                 onClick = { onHaptic(); app.player.previous() },
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
-                    .size(68.dp)
+                    .weight(1f)
+                    .height(68.dp)
                     .semantics { role = Role.Button; contentDescription = prevDesc },
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -751,7 +735,7 @@ private fun Transport(state: PlayerState, onHaptic: () -> Unit) {
                 shape = RoundedCornerShape(playCorner),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .width(116.dp)
+                    .weight(1.4f)
                     .height(68.dp)
                     .semantics { role = Role.Button; contentDescription = playDesc },
             ) {
@@ -770,7 +754,8 @@ private fun Transport(state: PlayerState, onHaptic: () -> Unit) {
                 shape = CircleShape,
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
-                    .size(68.dp)
+                    .weight(1f)
+                    .height(68.dp)
                     .semantics { role = Role.Button; contentDescription = nextDesc },
             ) {
                 Box(contentAlignment = Alignment.Center) {

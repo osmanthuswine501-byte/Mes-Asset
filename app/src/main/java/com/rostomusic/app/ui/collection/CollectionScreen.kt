@@ -350,9 +350,27 @@ fun CollectionScreen(nav: NavController) {
                         dolby?.let { DolbyBadge(it) }
                     }
                     Spacer(Modifier.height(Space.x5))
-                    Row(horizontalArrangement = Arrangement.spacedBy(Space.x3)) {
-                        PrimaryButton(stringResource(R.string.play), { app.play(songs, 0) }, Modifier.weight(1f), icon = R.drawable.ic_play_filled, enabled = songs.isNotEmpty())
-                        SecondaryButton(stringResource(R.string.shuffle), { app.shuffle(songs) }, Modifier.weight(1f), icon = R.drawable.ic_shuffle)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Space.x2),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        PrimaryButton(
+                            text = stringResource(R.string.play),
+                            onClick = { app.play(songs, 0) },
+                            modifier = Modifier.weight(1f),
+                            icon = R.drawable.ic_play_filled,
+                            enabled = songs.isNotEmpty(),
+                        )
+                        IconBtn(
+                            icon = R.drawable.ic_shuffle,
+                            contentDescription = stringResource(R.string.shuffle),
+                            onClick = { app.shuffle(songs) },
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.onSecondaryContainer,
+                            container = androidx.compose.material3.MaterialTheme.colorScheme.secondaryContainer,
+                            size = 56.dp,
+                            iconSize = 22.dp,
+                            enabled = songs.isNotEmpty(),
+                        )
                     }
                     val bio = artistInfo?.bio.orEmpty()
                     // Already there when it was saved before; a biography that arrives later unfolds

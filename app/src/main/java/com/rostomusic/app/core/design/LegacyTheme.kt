@@ -71,23 +71,32 @@ object Rosto {
         }
 }
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3ExpressiveApi::class)
 @Deprecated("Utiliser MaterialTheme.colorScheme directement")
 @Composable
 fun AccentScope(accent: Color?, content: @Composable () -> Unit) {
-    if (accent == null) {
-        content()
-        return
-    }
     val current = MaterialTheme.colorScheme
+    val reduce = LocalReduceMotion.current
+    val spec = if (reduce) androidx.compose.animation.core.snap<Color>() else MaterialTheme.motionScheme.slowEffectsSpec()
+    val targetPrimary = accent ?: current.primary
+    val animatedPrimary by androidx.compose.animation.animateColorAsState(targetPrimary, spec, label = "accentPrimary")
     val dark = current.surface.luminance() < 0.5f || isSystemInDarkTheme()
-    val updated = remember(current, accent, dark) {
+    val updated = remember(current, animatedPrimary, dark) {
+        val onPrim = Palette.onColor(animatedPrimary)
+        val secContainer = Palette.tint(current.surfaceContainerHigh, animatedPrimary, if (dark) 0.34f else 0.26f)
+        val onSecContainer = if (dark) Color.White else Palette.InkDark
         current.copy(
-            primary = accent,
-            onPrimary = Palette.onColor(accent),
+            primary = animatedPrimary,
+            onPrimary = onPrim,
+            primaryContainer = secContainer,
+            onPrimaryContainer = onSecContainer,
+            secondaryContainer = secContainer,
+            onSecondaryContainer = onSecContainer,
         )
     }
     MaterialTheme(
         colorScheme = updated,
+        motionScheme = MaterialTheme.motionScheme,
         typography = MaterialTheme.typography,
         shapes = MaterialTheme.shapes,
         content = {

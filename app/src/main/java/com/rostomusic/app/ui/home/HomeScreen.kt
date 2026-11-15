@@ -388,9 +388,11 @@ private fun Shortcuts(ids: List<ShortcutId>, style: SectionStyle, nav: NavContro
                         ShortcutId.DAILY_MIX -> minOf(30, songs.size)
                         else -> -1
                     }
+                    val tilePress = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+                    val tileCorner = com.rostomusic.app.core.design.morphCorner(tilePress, rest = Radius.tile, pressed = 28.dp)
                     Row(
-                        Modifier.weight(1f).height(80.dp).clip(RoundedCornerShape(Radius.tile)).background(c.card)
-                            .clickable(role = Role.Button) { openShortcut(id, nav) }.padding(horizontal = Space.x4),
+                        Modifier.weight(1f).height(80.dp).pressScale(tilePress).clip(RoundedCornerShape(tileCorner)).background(c.card)
+                            .clickable(tilePress, androidx.compose.foundation.LocalIndication.current, role = Role.Button) { openShortcut(id, nav) }.padding(horizontal = Space.x4),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RIcon(shortcutIcon(id), null, tint = c.textPrimary, size = 22.dp)
