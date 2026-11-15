@@ -73,51 +73,75 @@ object Palette {
         Color(0xFFEC4899), // Rose bonbon
     )
 
+    /** Convertit un [Color] en teinte Material 3 harmonisée (saturation et luminosité maîtrisées). */
+    fun m3Tone(seed: Color, lightness: Float, maxSaturation: Float, minSaturation: Float = 0f): Color {
+        val hsl = FloatArray(3)
+        androidx.core.graphics.ColorUtils.colorToHSL(
+            android.graphics.Color.argb(
+                255,
+                (seed.red * 255f).toInt().coerceIn(0, 255),
+                (seed.green * 255f).toInt().coerceIn(0, 255),
+                (seed.blue * 255f).toInt().coerceIn(0, 255),
+            ),
+            hsl,
+        )
+        hsl[1] = hsl[1].coerceIn(minSaturation, maxSaturation)
+        hsl[2] = lightness.coerceIn(0f, 1f)
+        return Color(androidx.core.graphics.ColorUtils.HSLToColor(hsl))
+    }
+
     fun colors(dark: Boolean, accent: Color): RostoColors {
-        // Dark is the reference look (ui-ux-pro-max, music: deep background so the covers stand out).
-        val bg = if (dark) Color(0xFF0F0F23) else Color(0xFFF5F6FA)
-        val text = if (dark) InkLight else InkDark
-        // Expressive tonal surfaces: the accent leaks a little into cards and containers (4 % and 10 %),
-        // the page itself stays neutral so covers carry the colour.
-        val card = tint(if (dark) Color(0xFF1B1B30) else Color(0xFFFFFFFF), accent, 0.04f)
-        val surfaceAlt = tint(if (dark) Color(0xFF27273B) else Color(0xFFECEEF4), accent, 0.10f)
-        val container = tint(if (dark) Color(0xFF27273B) else Color(0xFFECEEF4), accent, if (dark) 0.30f else 0.26f)
-        val scLowest = if (dark) Color(0xFF0A0A18) else Color(0xFFFFFFFF)
-        val scLow = tint(if (dark) Color(0xFF141428) else Color(0xFFF7F8FC), accent, 0.03f)
-        val scMid = card
-        val scHigh = tint(if (dark) Color(0xFF212138) else Color(0xFFF0F1F7), accent, 0.07f)
-        val scHighest = surfaceAlt
+        // Palette tonale Material 3 complète dérivée d'une seule graine (zéro couleur criarde ou dépareillée)
+        val primary = if (dark) m3Tone(accent, 0.78f, 0.72f, 0.40f) else m3Tone(accent, 0.42f, 0.72f, 0.42f)
+        val onPrimary = onColor(primary)
+        val bg = if (dark) m3Tone(accent, 0.08f, 0.22f) else m3Tone(accent, 0.96f, 0.20f)
+        val text = if (dark) Color(0xFFF3F4F8) else Color(0xFF16181D)
+        val scLowest = if (dark) m3Tone(accent, 0.05f, 0.20f) else Color(0xFFFFFFFF)
+        val scLow = if (dark) m3Tone(accent, 0.11f, 0.22f) else m3Tone(accent, 0.94f, 0.22f)
+        val card = if (dark) m3Tone(accent, 0.14f, 0.24f) else m3Tone(accent, 0.92f, 0.24f)
+        val scHigh = if (dark) m3Tone(accent, 0.18f, 0.26f) else m3Tone(accent, 0.89f, 0.24f)
+        val surfaceAlt = if (dark) m3Tone(accent, 0.22f, 0.28f) else m3Tone(accent, 0.86f, 0.26f)
+        val container = if (dark) m3Tone(accent, 0.27f, 0.46f, 0.25f) else m3Tone(accent, 0.86f, 0.48f, 0.28f)
+        val onContainer = if (dark) m3Tone(accent, 0.92f, 0.35f) else m3Tone(accent, 0.16f, 0.55f)
+        val secHue = shiftHue(accent, 22f, satScale = 0.70f)
+        val sec = if (dark) m3Tone(secHue, 0.74f, 0.50f) else m3Tone(secHue, 0.46f, 0.50f)
+        val secCont = if (dark) m3Tone(secHue, 0.24f, 0.36f, 0.18f) else m3Tone(secHue, 0.87f, 0.36f, 0.20f)
+        val onSecCont = if (dark) m3Tone(secHue, 0.90f, 0.30f) else m3Tone(secHue, 0.18f, 0.45f)
+        val tertHue = shiftHue(accent, 55f, satScale = 0.75f)
+        val tert = if (dark) m3Tone(tertHue, 0.76f, 0.55f) else m3Tone(tertHue, 0.45f, 0.55f)
+        val tertCont = if (dark) m3Tone(tertHue, 0.25f, 0.38f) else m3Tone(tertHue, 0.88f, 0.38f)
+        val onTertCont = if (dark) m3Tone(tertHue, 0.90f, 0.30f) else m3Tone(tertHue, 0.18f, 0.45f)
+
         return RostoColors(
             background = bg,
             card = card,
             surfaceAlt = surfaceAlt,
             textPrimary = text,
-            textSecondary = if (dark) Color(0xFF94A3B8) else Color(0xFF4C5060),
-            // 5:1 on the dark background, so small captions stay readable.
-            textMuted = if (dark) Color(0xFF8590A6) else Color(0xFF6B6F7E),
-            hairline = text.copy(alpha = 0.08f),
-            accent = accent,
-            onAccent = onColor(accent),
-            accentText = readableOn(accent, bg),
-            danger = if (dark) Color(0xFFFF6B6B) else Color(0xFFC62F2F),
+            textSecondary = if (dark) m3Tone(accent, 0.74f, 0.14f) else m3Tone(accent, 0.34f, 0.16f),
+            textMuted = if (dark) m3Tone(accent, 0.62f, 0.12f) else m3Tone(accent, 0.44f, 0.14f),
+            hairline = text.copy(alpha = 0.10f),
+            accent = primary,
+            onAccent = onPrimary,
+            accentText = readableOn(primary, bg),
+            danger = if (dark) Color(0xFFFFB4AB) else Color(0xFFBA1A1A),
             vinyl = if (dark) Color(0xFF0A0A0C) else Color(0xFF17181D),
             vinylGroove = Color(0xFFFFFFFF).copy(alpha = if (dark) 0.07f else 0.09f),
             isDark = dark,
             accentContainer = container,
-            onAccentContainer = if (dark) InkLight else InkDark,
+            onAccentContainer = onContainer,
             surfaceContainerLowest = scLowest,
             surfaceContainerLow = scLow,
-            surfaceContainer = scMid,
+            surfaceContainer = card,
             surfaceContainerHigh = scHigh,
-            surfaceContainerHighest = scHighest,
-            secondary = shiftHue(accent, 25f, satScale = 0.65f),
-            onSecondary = onColor(shiftHue(accent, 25f, satScale = 0.65f)),
-            secondaryContainer = tint(surfaceAlt, shiftHue(accent, 25f, satScale = 0.65f), if (dark) 0.24f else 0.20f),
-            onSecondaryContainer = if (dark) InkLight else InkDark,
-            tertiary = shiftHue(accent, 60f, satScale = 0.80f),
-            onTertiary = onColor(shiftHue(accent, 60f, satScale = 0.80f)),
-            tertiaryContainer = tint(surfaceAlt, shiftHue(accent, 60f, satScale = 0.80f), if (dark) 0.26f else 0.22f),
-            onTertiaryContainer = if (dark) InkLight else InkDark,
+            surfaceContainerHighest = surfaceAlt,
+            secondary = sec,
+            onSecondary = onColor(sec),
+            secondaryContainer = secCont,
+            onSecondaryContainer = onSecCont,
+            tertiary = tert,
+            onTertiary = onColor(tert),
+            tertiaryContainer = tertCont,
+            onTertiaryContainer = onTertCont,
         )
     }
 

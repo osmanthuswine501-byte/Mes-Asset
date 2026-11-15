@@ -5,6 +5,7 @@ import android.graphics.drawable.BitmapDrawable
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -13,7 +14,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette as ColorPalette
@@ -48,9 +48,9 @@ fun rememberCoverTone(model: Any?, fallback: Color, alternative: Any? = null): C
 suspend fun measureCoverTone(context: android.content.Context, model: Any): Color? {
     ToneCache[model]?.let { return it }
     return withContext(Dispatchers.IO) {
-        val request = ImageRequest.Builder(context).data(model).allowHardware(false).size(160).build()
+        val request = ImageRequest.Builder(context).data(model).allowHardware(false).size(128).build()
         val bitmap = ((context.imageLoader.execute(request) as? SuccessResult)?.drawable as? BitmapDrawable)?.bitmap
-        bitmap?.let(::edgeColor)
+        bitmap?.let(::harmonizedSeed)
     }?.also { ToneCache[model] = it }
 }
 
@@ -62,59 +62,59 @@ private object ToneCache {
     @Synchronized operator fun set(key: Any, value: Color) { map[key] = value }
 }
 
-private fun edgeColor(bitmap: Bitmap): Color? = runCatching {
-    val h = bitmap.height
-    val palette = ColorPalette.from(bitmap).setRegion(0, h * 3 / 4, bitmap.width, h).clearFilters().generate()
-    val swatch = palette.dominantSwatch ?: palette.vibrantSwatch ?: palette.mutedSwatch ?: return@runCatching null
+private fun harmonizedSeed(bitmap: Bitmap): Color? = runCatching {
+    val palette = ColorPalette.from(bitmap).clearFilters().generate()
+    val swatch = palette.vibrantSwatch ?: palette.dominantSwatch ?: palette.mutedSwatch ?: return@runCatching null
     Color(swatch.rgb)
 }.getOrNull()
 
 fun toneColors(base: RostoColors, bg: Color): RostoColors {
     val dark = bg.luminance() < 0.4f
-    val ink = if (dark) Color.White else Palette.InkDark
-    return base.copy(
-        background = bg,
-        card = ink.copy(alpha = 0.08f).compositeOver(bg),
-        surfaceAlt = ink.copy(alpha = 0.14f).compositeOver(bg),
-        surfaceContainerLowest = ink.copy(alpha = 0.04f).compositeOver(bg),
-        surfaceContainerLow = ink.copy(alpha = 0.07f).compositeOver(bg),
-        surfaceContainer = ink.copy(alpha = 0.10f).compositeOver(bg),
-        surfaceContainerHigh = ink.copy(alpha = 0.14f).compositeOver(bg),
-        surfaceContainerHighest = ink.copy(alpha = 0.18f).compositeOver(bg),
-        textPrimary = ink,
-        textSecondary = ink.copy(alpha = 0.78f).compositeOver(bg),
-        textMuted = ink.copy(alpha = 0.72f).compositeOver(bg),
-        hairline = ink.copy(alpha = 0.10f),
-        accentText = Palette.readableOn(base.accent, bg),
-        isDark = dark,
-    )
+    return Palette.colors(dark, bg)
 }
 
+/**
+ * Applique une palette Material 3 complète, cohérente et animée à partir de la couleur graine [bg]
+ * (aucune couleur aléatoire ou désaccordée entre le fond, les cartes et les boutons).
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ToneScope(bg: Color, content: @Composable () -> Unit) {
-    val base = Rosto.colors
-    val colors = remember(base, bg) { toneColors(base, bg) }
     val baseScheme = MaterialTheme.colorScheme
-    val dark = bg.luminance() < 0.4f
-    val ink = if (dark) Color.White else Palette.InkDark
-    val tonedScheme = remember(baseScheme, bg, dark) {
+    val dark = baseScheme.surface.luminance() < 0.4f || isSystemInDarkTheme()
+    val reduce = LocalReduceMotion.current
+    val spec = if (reduce) snap<Color>() else MaterialTheme.motionScheme.slowEffectsSpec()
+    val animatedSeed by animateColorAsState(bg, spec, label = "toneSeed")
+    val pal = remember(dark, animatedSeed) { Palette.colors(dark, animatedSeed) }
+    val tonedScheme = remember(baseScheme, pal) {
         baseScheme.copy(
-            background = bg,
-            onBackground = ink,
-            surface = bg,
-            onSurface = ink,
-            onSurfaceVariant = ink.copy(alpha = 0.76f).compositeOver(bg),
-            outline = ink.copy(alpha = 0.65f).compositeOver(bg),
-            outlineVariant = ink.copy(alpha = 0.14f).compositeOver(bg),
-            surfaceContainerLowest = ink.copy(alpha = 0.05f).compositeOver(bg),
-            surfaceContainerLow = ink.copy(alpha = 0.08f).compositeOver(bg),
-            surfaceContainer = ink.copy(alpha = 0.11f).compositeOver(bg),
-            surfaceContainerHigh = ink.copy(alpha = 0.15f).compositeOver(bg),
-            surfaceContainerHighest = ink.copy(alpha = 0.20f).compositeOver(bg),
+            primary = pal.accent,
+            onPrimary = pal.onAccent,
+            primaryContainer = pal.accentContainer,
+            onPrimaryContainer = pal.onAccentContainer,
+            secondary = pal.secondary,
+            onSecondary = pal.onSecondary,
+            secondaryContainer = pal.secondaryContainer,
+            onSecondaryContainer = pal.onSecondaryContainer,
+            tertiary = pal.tertiary,
+            onTertiary = pal.onTertiary,
+            tertiaryContainer = pal.tertiaryContainer,
+            onTertiaryContainer = pal.onTertiaryContainer,
+            background = pal.background,
+            onBackground = pal.textPrimary,
+            surface = pal.card,
+            onSurface = pal.textPrimary,
+            onSurfaceVariant = pal.textSecondary,
+            outline = pal.textMuted,
+            outlineVariant = pal.hairline,
+            surfaceContainerLowest = pal.surfaceContainerLowest,
+            surfaceContainerLow = pal.surfaceContainerLow,
+            surfaceContainer = pal.surfaceContainer,
+            surfaceContainerHigh = pal.surfaceContainerHigh,
+            surfaceContainerHighest = pal.surfaceContainerHighest,
         )
     }
-    CompositionLocalProvider(LocalRostoColors provides colors) {
+    CompositionLocalProvider(LocalRostoColors provides pal) {
         MaterialTheme(
             colorScheme = tonedScheme,
             motionScheme = MaterialTheme.motionScheme,

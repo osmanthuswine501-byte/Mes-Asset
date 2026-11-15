@@ -179,14 +179,14 @@ fun PlayerScreen(nav: NavController, sharedScope: SharedTransitionScope, visibil
 
     val backdrop = settings.playerVisual != PlayerVisual.VINYL
     var infoTop by remember { mutableFloatStateOf(0f) }
-    AccentScope(coverAccent) {
-      // The cover fills the top of the screen and fades into its own colour, which covers the page.
-      val tone = rememberCoverTone(if (backdrop) song.artUri else null, Rosto.colors.background)
-      val pageBg = if (backdrop) tone else Rosto.colors.background
-      // The status bar icons follow the colour under them (see App).
+    val baseSeed = coverAccent ?: MaterialTheme.colorScheme.primary
+    val tone = rememberCoverTone(if (backdrop) song.artUri else null, baseSeed)
+    val playerSeed = if (backdrop) (coverAccent ?: tone) else MaterialTheme.colorScheme.primary
+    ToneScope(playerSeed) {
+      val pageBg = MaterialTheme.colorScheme.background
       SideEffect { app.playerTone.value = pageBg }
       DisposableEffect(Unit) { onDispose { app.playerTone.value = null } }
-      ToneScope(pageBg) {
+      run {
         val c = Rosto.colors
         Box(Modifier.fillMaxSize().background(c.background)) {
             Column(
