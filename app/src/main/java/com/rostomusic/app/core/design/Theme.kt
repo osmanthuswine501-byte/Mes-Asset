@@ -2,12 +2,14 @@ package com.rostomusic.app.core.design
 
 import android.os.Build
 import android.provider.Settings.Global
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
@@ -17,7 +19,9 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -32,14 +36,6 @@ private val ExpressiveLineHeightStyle = LineHeightStyle(
     trim = LineHeightStyle.Trim.None,
 )
 
-/**
- * Formes standard Material 3 Expressive (system/shape.md) :
- * - ExtraSmall : 4.dp (Snackbars, TextFields)
- * - Small      : 8.dp (Chips, Menus)
- * - Medium     : 12.dp (Cards)
- * - Large      : 16.dp (FABs, Side sheets)
- * - ExtraLarge : 28.dp (Dialogs, Bottom sheets / modales)
- */
 val RostoShapes = Shapes(
     extraSmall = RoundedCornerShape(4.dp),
     small = RoundedCornerShape(8.dp),
@@ -48,10 +44,6 @@ val RostoShapes = Shapes(
     extraLarge = RoundedCornerShape(28.dp),
 )
 
-/**
- * Typographie Material 3 Expressive avec les 15 styles Emphasized
- * (system/typography-expressive.md) pour les titres et moments Hero.
- */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 val RostoTypography = Typography(
     displayLarge = TextStyle(fontFamily = Jakarta, lineHeightStyle = ExpressiveLineHeightStyle, fontWeight = FontWeight.Normal, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
@@ -70,7 +62,6 @@ val RostoTypography = Typography(
     labelMedium = TextStyle(fontFamily = Jakarta, lineHeightStyle = ExpressiveLineHeightStyle, fontWeight = FontWeight.Medium, fontSize = 12.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp, fontFeatureSettings = "tnum"),
     labelSmall = TextStyle(fontFamily = Jakarta, lineHeightStyle = ExpressiveLineHeightStyle, fontWeight = FontWeight.Medium, fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp, fontFeatureSettings = "tnum"),
 
-    // 15 styles Emphasized M3 Expressive
     displayLargeEmphasized = TextStyle(fontFamily = Jakarta, lineHeightStyle = ExpressiveLineHeightStyle, fontWeight = FontWeight.Bold, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
     displayMediumEmphasized = TextStyle(fontFamily = Jakarta, lineHeightStyle = ExpressiveLineHeightStyle, fontWeight = FontWeight.Bold, fontSize = 45.sp, lineHeight = 52.sp),
     displaySmallEmphasized = TextStyle(fontFamily = Jakarta, lineHeightStyle = ExpressiveLineHeightStyle, fontWeight = FontWeight.Bold, fontSize = 36.sp, lineHeight = 44.sp),
@@ -88,17 +79,37 @@ val RostoTypography = Typography(
     labelSmallEmphasized = TextStyle(fontFamily = Jakarta, lineHeightStyle = ExpressiveLineHeightStyle, fontWeight = FontWeight.Bold, fontSize = 11.sp, lineHeight = 16.sp, letterSpacing = 0.5.sp, fontFeatureSettings = "tnum"),
 )
 
-/**
- * Thème Material 3 Expressive pur :
- * - Aucune couleur hexadécimale en dur
- * - Dynamic Color activé (Android 12+) avec repli sur lightColorScheme / darkColorScheme
- * - MotionScheme.expressive() pour les transitions spring()
- */
+private fun seedColorScheme(dark: Boolean, seed: Color): ColorScheme {
+    val c = Palette.colors(dark, seed)
+    return if (dark) {
+        darkColorScheme(
+            primary = c.accent, onPrimary = c.onAccent, primaryContainer = c.accentContainer, onPrimaryContainer = c.onAccentContainer,
+            secondary = c.secondary, onSecondary = c.onSecondary, secondaryContainer = c.secondaryContainer, onSecondaryContainer = c.onSecondaryContainer,
+            tertiary = c.tertiary, onTertiary = c.onTertiary, tertiaryContainer = c.tertiaryContainer, onTertiaryContainer = c.onTertiaryContainer,
+            background = c.background, onBackground = c.textPrimary, surface = c.card, onSurface = c.textPrimary,
+            surfaceVariant = c.surfaceAlt, onSurfaceVariant = c.textSecondary, outline = c.textMuted, outlineVariant = c.hairline,
+            surfaceContainerLowest = c.surfaceContainerLowest, surfaceContainerLow = c.surfaceContainerLow,
+            surfaceContainer = c.surfaceContainer, surfaceContainerHigh = c.surfaceContainerHigh, surfaceContainerHighest = c.surfaceContainerHighest,
+            error = c.danger,
+        )
+    } else {
+        lightColorScheme(
+            primary = c.accent, onPrimary = c.onAccent, primaryContainer = c.accentContainer, onPrimaryContainer = c.onAccentContainer,
+            secondary = c.secondary, onSecondary = c.onSecondary, secondaryContainer = c.secondaryContainer, onSecondaryContainer = c.onSecondaryContainer,
+            tertiary = c.tertiary, onTertiary = c.onTertiary, tertiaryContainer = c.tertiaryContainer, onTertiaryContainer = c.onTertiaryContainer,
+            background = c.background, onBackground = c.textPrimary, surface = c.card, onSurface = c.textPrimary,
+            surfaceVariant = c.surfaceAlt, onSurfaceVariant = c.textSecondary, outline = c.textMuted, outlineVariant = c.hairline,
+            surfaceContainerLowest = c.surfaceContainerLowest, surfaceContainerLow = c.surfaceContainerLow,
+            surfaceContainer = c.surfaceContainer, surfaceContainerHigh = c.surfaceContainerHigh, surfaceContainerHighest = c.surfaceContainerHighest,
+            error = c.danger,
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RostoTheme(
     settings: Settings,
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when (settings.themeMode) {
@@ -107,17 +118,25 @@ fun RostoTheme(
         ThemeMode.DARK -> true
     }
     val context = LocalContext.current
-    val colorScheme = remember(darkTheme, dynamicColor, context) {
-        if (dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        } else {
-            if (darkTheme) darkColorScheme() else lightColorScheme()
-        }
-    }
     val reduceMotion = remember(context) {
         runCatching {
             Global.getFloat(context.contentResolver, Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
         }.getOrDefault(false)
+    }
+    val useDynamic = settings.dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val rawAccent = Color(settings.accent)
+    val animatedAccent by animateColorAsState(
+        targetValue = rawAccent,
+        animationSpec = if (reduceMotion) snap() else MotionScheme.expressive().defaultEffectsSpec(),
+        label = "themeSeedAccent",
+    )
+
+    val colorScheme = remember(darkTheme, useDynamic, animatedAccent, context) {
+        if (useDynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        } else {
+            seedColorScheme(darkTheme, animatedAccent)
+        }
     }
 
     CompositionLocalProvider(
@@ -131,6 +150,8 @@ fun RostoTheme(
             typography = RostoTypography,
         ) {
             CompositionLocalProvider(
+                LocalRostoColors provides Rosto.colors,
+                LocalRostoType provides Rosto.type,
                 LocalIndication provides PressIndication,
                 content = content,
             )

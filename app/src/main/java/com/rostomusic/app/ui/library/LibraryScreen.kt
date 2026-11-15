@@ -533,7 +533,15 @@ private fun PlaylistsTab(vm: LibraryViewModel, nav: NavController) {
         item {
             Row(Modifier.fillMaxWidth().padding(horizontal = Space.screen, vertical = Space.x2), horizontalArrangement = Arrangement.spacedBy(Space.x3)) {
                 PrimaryButton(stringResource(R.string.new_playlist), { creating = true }, Modifier.weight(1f), icon = R.drawable.ic_plus)
-                SecondaryButton(stringResource(R.string.import_m3u), { importer.launch(arrayOf("*/*")) }, Modifier.weight(1f), icon = R.drawable.ic_file_down)
+                IconBtn(
+                    icon = R.drawable.ic_file_down,
+                    contentDescription = stringResource(R.string.import_m3u),
+                    onClick = { importer.launch(arrayOf("*/*")) },
+                    tint = androidx.compose.material3.MaterialTheme.colorScheme.onSecondaryContainer,
+                    container = androidx.compose.material3.MaterialTheme.colorScheme.secondaryContainer,
+                    size = 56.dp,
+                    iconSize = 22.dp,
+                )
             }
         }
         item {

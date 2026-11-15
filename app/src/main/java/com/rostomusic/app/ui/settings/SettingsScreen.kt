@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -344,17 +346,21 @@ private fun ValueRow(icon: Int, title: String, value: String, hint: String? = nu
 @Composable
 private fun SwitchRow(icon: Int, title: String, checked: Boolean, hint: String? = null, onChange: (Boolean) -> Unit) {
     val c = Rosto.colors
-    val press = remember { MutableInteractionSource() }
-    val corner = morphCorner(press, rest = 4.dp, pressed = 16.dp)
+    // Règle 1 M3E : pas de clickable global sur la Row qui contient le Switch interactif
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(corner)).background(c.surfaceContainerLow).clickable(press, LocalIndication.current, role = Role.Switch) { onChange(!checked) }.heightIn(min = 68.dp).padding(horizontal = Space.x4, vertical = Space.x1),
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(4.dp)).background(c.surfaceContainerLow).heightIn(min = 68.dp).padding(horizontal = Space.x4, vertical = Space.x1),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         com.rostomusic.app.core.design.IconPill(icon)
         Spacer(Modifier.width(Space.x4))
         RowText(title, hint, Modifier.weight(1f))
         Spacer(Modifier.width(Space.x2))
-        RostoSwitch(checked = checked, onCheckedChange = null, colors = switchColors(c))
+        RostoSwitch(
+            checked = checked,
+            onCheckedChange = onChange,
+            colors = switchColors(c),
+            modifier = Modifier.semantics { contentDescription = title },
+        )
     }
 }
 
@@ -409,23 +415,41 @@ private fun <T> ChoiceSheet(title: String, choices: List<Choice<T>>, current: T,
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun AccentSheet(current: Color, onDismiss: () -> Unit, onPick: (Color) -> Unit) {
     val c = Rosto.colors
     var hue by remember { mutableFloatStateOf(run { val hsv = FloatArray(3); android.graphics.Color.colorToHSV(current.toArgb(), hsv); hsv[0] }) }
-    val names = listOf(R.string.accent_orange, R.string.accent_green, R.string.accent_magenta, R.string.accent_blue)
+    val presetLabels = listOf(
+        "Orange corail", "Vert émeraude", "Magenta", "Bleu azur",
+        "Violet améthyste", "Turquoise", "Or ambré", "Rose carmin",
+        "Indigo", "Citron vert", "Cyan", "Rose bonbon",
+    )
     RostoSheet(onDismiss) {
         SheetTitle(stringResource(R.string.settings_accent), stringResource(R.string.settings_accent_hint))
         Column(Modifier.padding(horizontal = Space.x6).padding(bottom = Space.x8)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(Space.x4)) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Space.x3),
+                verticalArrangement = Arrangement.spacedBy(Space.x3),
+            ) {
                 Palette.AccentPresets.forEachIndexed { i, color ->
-                    val name = stringResource(names[i])
+                    val name = presetLabels.getOrElse(i) { "Couleur ${i + 1}" }
+                    val selected = color.toArgb() == current.toArgb()
                     Box(
-                        Modifier.size(Space.touch).clip(CircleShape).background(color)
-                            .then(if (color == current) Modifier.border(3.dp, c.textPrimary, CircleShape) else Modifier)
+                        Modifier
+                            .size(Space.touch)
+                            .clip(if (selected) RoundedCornerShape(16.dp) else CircleShape)
+                            .background(color)
+                            .then(if (selected) Modifier.border(3.dp, c.textPrimary, RoundedCornerShape(16.dp)) else Modifier)
                             .clickable(role = Role.RadioButton) { onPick(color) }
                             .semantics { contentDescription = name },
-                    )
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (selected) {
+                            RIcon(R.drawable.ic_check, null, tint = Palette.onColor(color), size = 20.dp)
+                        }
+                    }
                 }
             }
             Spacer(Modifier.height(Space.x5))
@@ -434,8 +458,11 @@ private fun AccentSheet(current: Color, onDismiss: () -> Unit, onPick: (Color) -
                 val custom = Color.hsv(hue, 0.78f, 0.92f)
                 val label = stringResource(R.string.accent_custom)
                 RostoSlider(
-                    value = hue, onValueChange = { hue = it }, onValueChangeFinished = { onPick(Color.hsv(hue, 0.78f, 0.92f)) },
-                    valueRange = 0f..359f, accent = custom,
+                    value = hue,
+                    onValueChange = { hue = it },
+                    onValueChangeFinished = { onPick(Color.hsv(hue, 0.78f, 0.92f)) },
+                    valueRange = 0f..359f,
+                    accent = custom,
                     stateDescriptionText = "${hue.roundToInt()} degrés",
                     modifier = Modifier.weight(1f).semantics { contentDescription = label },
                 )

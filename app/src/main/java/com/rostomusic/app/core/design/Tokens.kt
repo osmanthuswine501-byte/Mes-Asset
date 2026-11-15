@@ -58,7 +58,20 @@ object Palette {
     val InkLight = Color(0xFFF8FAFC)
     /** Play green, the one accent of the app (ui-ux-pro-max music palette, accent). */
     val DefaultAccent = Color(0xFF22C55E)
-    val AccentPresets = listOf(Color(0xFFFF4A1C), Color(0xFF22C55E), Color(0xFFC2378F), Color(0xFF3B9EFF))
+    val AccentPresets = listOf(
+        Color(0xFFFF4A1C), // Orange corail
+        Color(0xFF22C55E), // Vert émeraude
+        Color(0xFFC2378F), // Magenta
+        Color(0xFF3B9EFF), // Bleu azur
+        Color(0xFF8B5CF6), // Violet améthyste
+        Color(0xFF14B8A6), // Turquoise / Teal
+        Color(0xFFF59E0B), // Or ambré
+        Color(0xFFF43F5E), // Rose carmin
+        Color(0xFF6366F1), // Indigo profond
+        Color(0xFF84CC16), // Citron vert
+        Color(0xFF06B6D4), // Cyan électrique
+        Color(0xFFEC4899), // Rose bonbon
+    )
 
     fun colors(dark: Boolean, accent: Color): RostoColors {
         // Dark is the reference look (ui-ux-pro-max, music: deep background so the covers stand out).

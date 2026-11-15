@@ -180,7 +180,7 @@ fun SortSheet(
             }
             Row(
                 Modifier.fillMaxWidth().clip(RoundedCornerShape(Radius.tile)).background(c.background)
-                    .clickable(role = Role.Switch) { onSwitch(!switchOn) }.padding(Space.x4),
+                    .padding(Space.x4),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(Modifier.weight(1f)) {
