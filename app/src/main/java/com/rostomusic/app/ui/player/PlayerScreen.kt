@@ -668,11 +668,11 @@ private fun PlayerVisualArea(
             modifier = Modifier.fillMaxWidth(),
         ) { page ->
             val pageSong = pages[page]
-            val offset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
-                .absoluteValue
-                .coerceIn(0f, 1f)
-            val scale = floatLerp(1f, 0.88f, offset)
-            val corner = lerp(12.dp, 28.dp, offset)
+            val signedOffset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction).coerceIn(-1f, 1f)
+            val offset = signedOffset.absoluteValue
+            val scaleXVal = floatLerp(1f, 0.78f, offset)
+            val scaleYVal = floatLerp(1f, 0.94f, offset)
+            val corner = lerp(16.dp, 28.dp, offset)
             val elevation = lerp(8.dp, 2.dp, offset)
             val shared = if (page == safeIndex) {
                 with(sharedScope) {
@@ -688,17 +688,24 @@ private fun PlayerVisualArea(
                     .fillMaxWidth()
                     .aspectRatio(1f)
                     .graphicsLayer {
-                        scaleX = scale
-                        scaleY = scale
+                        scaleX = scaleXVal
+                        scaleY = scaleYVal
                     }
                     .then(shared),
             ) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    val parallaxMod = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            scaleX = 1.12f
+                            scaleY = 1.12f
+                            translationX = signedOffset * 28.dp.toPx()
+                        }
                     if (visual == PlayerVisual.VINYL && page == safeIndex) {
                         Vinyl(pageSong, pageSong.album.ifEmpty { pageSong.title }, playing, Modifier.fillMaxSize())
                         Tonearm(playing, Modifier.fillMaxSize())
                     } else {
-                        CoverArt(pageSong, Modifier.fillMaxSize(), radius = corner)
+                        CoverArt(pageSong, parallaxMod, radius = corner)
                     }
                 }
             }
@@ -733,10 +740,15 @@ private fun Transport(state: PlayerState, onHaptic: () -> Unit) {
                 }
             }
 
-            // 1 seul bouton haute emphase (Filled) par écran
+            // 1 seul bouton haute emphase (Filled) par écran avec Shape Morphing Square <-> Circle/Pill
+            val playCorner by animateDpAsState(
+                targetValue = if (state.isPlaying) 20.dp else 34.dp,
+                animationSpec = if (LocalReduceMotion.current) snap() else MaterialTheme.motionScheme.defaultSpatialSpec(),
+                label = "playShapeMorph",
+            )
             Surface(
                 onClick = { onHaptic(); app.player.toggle() },
-                shape = CircleShape,
+                shape = RoundedCornerShape(playCorner),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .width(116.dp)
