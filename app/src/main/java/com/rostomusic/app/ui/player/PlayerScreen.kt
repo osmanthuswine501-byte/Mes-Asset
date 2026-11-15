@@ -599,8 +599,9 @@ private fun PlayerVisualArea(
 ) {
     val pages = queue.ifEmpty { listOf(song) }
     val safeIndex = queueIndex.coerceIn(0, pages.lastIndex)
+    val pagerState = rememberPagerState(initialPage = safeIndex) { pages.size }
     val reduceMotion = LocalReduceMotion.current
-    val spatialSpec = if (reduceMotion) snap() else MaterialTheme.motionScheme.defaultSpatialSpec()
+    val spatialSpec = if (reduceMotion) snap<Float>() else MaterialTheme.motionScheme.defaultSpatialSpec<Float>()
 
     LaunchedEffect(safeIndex, pages.size) {
         if (pagerState.currentPage != safeIndex && !pagerState.isScrollInProgress) {

@@ -912,9 +912,6 @@ fun rememberStagger(): StaggerState {
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
-val androidx.compose.material3.MotionScheme.defaultSpatialDamping: Float get() = 0.8f
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun Modifier.stagger(state: StaggerState, index: Int): Modifier = composed {
     if (state.done || index >= 10) return@composed this
     val reduce = LocalReduceMotion.current
