@@ -255,7 +255,7 @@ fun EqualizerScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val contentAlpha by animateFloatAsState(
         targetValue = if (uiState.enabled) 1f else 0.6f,
-        animationSpec = spring(dampingRatio = MaterialTheme.motionScheme.defaultSpatialDamping),
+        animationSpec = spring(dampingRatio = 0.8f),
         label = "eqContentAlpha",
     )
 
@@ -413,10 +413,10 @@ fun EqualizerScreen(
 
             AnimatedVisibility(
                 visible = showAdvancedEffects,
-                enter = fadeIn(spring(dampingRatio = MaterialTheme.motionScheme.defaultSpatialDamping)) +
-                    expandVertically(spring(dampingRatio = MaterialTheme.motionScheme.defaultSpatialDamping)),
-                exit = fadeOut(spring(dampingRatio = MaterialTheme.motionScheme.defaultSpatialDamping)) +
-                    shrinkVertically(spring(dampingRatio = MaterialTheme.motionScheme.defaultSpatialDamping)),
+                enter = fadeIn(spring(dampingRatio = 0.8f)) +
+                    expandVertically(spring(dampingRatio = 0.8f)),
+                exit = fadeOut(spring(dampingRatio = 0.8f)) +
+                    shrinkVertically(spring(dampingRatio = 0.8f)),
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(Space.x3)) {
                     EffectCard(

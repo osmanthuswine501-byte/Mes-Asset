@@ -916,7 +916,7 @@ fun Modifier.stagger(state: StaggerState, index: Int): Modifier = composed {
     if (state.done || index >= 10) return@composed this
     val reduce = LocalReduceMotion.current
     val progress = remember { Animatable(0f) }
-    val damping = MaterialTheme.motionScheme.defaultSpatialDamping
+    val damping = 0.8f
     LaunchedEffect(Unit) {
         delay(index * 30L)
         progress.animateTo(1f, spring(dampingRatio = damping))

@@ -160,7 +160,7 @@ fun LyricsPane(
             ) {
                 itemsIndexed(lines) { i, line ->
                     val current = i == index
-                    val scale by animateFloatAsState(if (current) 1f else 0.94f, if (reduceMotion) androidx.compose.animation.core.snap() else androidx.compose.animation.core.spring(dampingRatio = MaterialTheme.motionScheme.defaultSpatialDamping), label = "line")
+                    val scale by animateFloatAsState(if (current) 1f else 0.94f, if (reduceMotion) androidx.compose.animation.core.snap() else androidx.compose.animation.core.spring(dampingRatio = 0.8f), label = "line")
                     val base = MaterialTheme.typography.headlineSmallEmphasized
                     val lineModifier = Modifier
                         .fillMaxWidth()
