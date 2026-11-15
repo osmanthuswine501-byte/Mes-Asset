@@ -29,6 +29,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,7 +72,7 @@ fun LyricsEditorScreen(nav: NavController) {
     val sync by vm.sync.collectAsStateWithLifecycle()
     val syncIndex by vm.syncIndex.collectAsStateWithLifecycle()
     val state by app.playerState.collectAsStateWithLifecycle()
-    var confirmDelete by remember { mutableStateOf(false) }
+    var confirmDelete by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(Unit) { vm.events.collect { app.message(it) } }
 
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -133,7 +134,7 @@ fun LyricsEditorScreen(nav: NavController) {
                     PrimaryButton(
                         stringResource(if (syncIndex >= lines.size) R.string.lyrics_sync_done else R.string.lyrics_sync_mark),
                         { if (syncIndex >= lines.size) vm.finishSync(true) else vm.mark() },
-                        Modifier.weight(1f).height(64.dp),
+                        Modifier.weight(1f),
                     )
                 }
                 if (syncIndex in 1 until lines.size) {

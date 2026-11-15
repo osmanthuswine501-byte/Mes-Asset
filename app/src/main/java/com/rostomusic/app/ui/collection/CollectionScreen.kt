@@ -246,9 +246,9 @@ fun CollectionScreen(nav: NavController) {
     val c = Rosto.colors
     val ui by vm.ui.collectAsStateWithLifecycle()
     val state by app.playerState.collectAsStateWithLifecycle()
-    var menu by remember { mutableStateOf(false) }
-    var renaming by remember { mutableStateOf(false) }
-    var deleting by remember { mutableStateOf(false) }
+    var menu by rememberSaveable { mutableStateOf(false) }
+    var renaming by rememberSaveable { mutableStateOf(false) }
+    var deleting by rememberSaveable { mutableStateOf(false) }
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("audio/x-mpegurl")) { uri -> if (uri != null) vm.export(uri) }
     LaunchedEffect(Unit) { vm.messages.collect { app.messages.emit(it) } }
 

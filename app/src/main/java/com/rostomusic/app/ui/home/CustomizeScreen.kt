@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -104,8 +105,8 @@ fun CustomizeScreen(nav: NavController) {
     // Local copy so dragging stays smooth; written back after each drop.
     var layout by remember(saved) { mutableStateOf(saved) }
     var styleFor by remember { mutableStateOf<SectionId?>(null) }
-    var editShortcuts by remember { mutableStateOf(false) }
-    var editPins by remember { mutableStateOf(false) }
+    var editShortcuts by rememberSaveable { mutableStateOf(false) }
+    var editPins by rememberSaveable { mutableStateOf(false) }
     var confirmReset by remember { mutableStateOf(false) }
 
     fun save(change: (HomeLayout) -> HomeLayout) {

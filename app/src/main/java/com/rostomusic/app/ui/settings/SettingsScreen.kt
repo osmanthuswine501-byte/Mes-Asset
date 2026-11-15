@@ -34,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -127,9 +128,9 @@ fun SettingsScreen(nav: NavController) {
     val folders by app.library.folders.collectAsStateWithLifecycle()
     val songs by app.library.songs.collectAsStateWithLifecycle()
     var sheet by remember { mutableStateOf<String?>(null) }
-    var showAccent by remember { mutableStateOf(false) }
-    var showFolders by remember { mutableStateOf(false) }
-    var showAbout by remember { mutableStateOf(false) }
+    var showAccent by rememberSaveable { mutableStateOf(false) }
+    var showFolders by rememberSaveable { mutableStateOf(false) }
+    var showAbout by rememberSaveable { mutableStateOf(false) }
     var confirmOnline by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) { vm.messages.collect { app.messages.emit(it) } }

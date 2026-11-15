@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.sp
 import com.rostomusic.app.core.design.RIcon
 import com.rostomusic.app.domain.ReleaseInfo
 import androidx.compose.foundation.layout.Arrangement
@@ -486,7 +485,7 @@ private fun ColumnScope.InfoLine(vararg cells: Cell) {
                 }
                 Text(
                     dash(cell.value),
-                    style = if (cell.mono) Rosto.type.body.copy(fontFamily = FontFamily.Monospace, fontSize = 14.sp) else Rosto.type.bodyStrong,
+                    style = if (cell.mono) androidx.compose.material3.MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace) else androidx.compose.material3.MaterialTheme.typography.titleSmall,
                     color = if (cell.value.isNullOrBlank()) c.textMuted else c.textPrimary,
                 )
             }

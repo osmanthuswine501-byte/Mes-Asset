@@ -41,6 +41,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -211,7 +212,7 @@ internal fun SongsTab(vm: LibraryViewModel) {
     val genre by vm.genre.collectAsStateWithLifecycle()
     val genres by vm.genres.collectAsStateWithLifecycle()
     val state by app.playerState.collectAsStateWithLifecycle()
-    var sorting by remember { mutableStateOf(false) }
+    var sorting by rememberSaveable { mutableStateOf(false) }
     val stagger = com.rostomusic.app.core.design.rememberStagger()
 
     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = LocalBottomInset.current + Space.x4)) {
@@ -267,7 +268,7 @@ internal fun AlbumsTab(vm: LibraryViewModel, nav: NavController) {
     val genre by vm.genre.collectAsStateWithLifecycle()
     val genres by vm.genres.collectAsStateWithLifecycle()
     val songs by app.library.songs.collectAsStateWithLifecycle()
-    var sorting by remember { mutableStateOf(false) }
+    var sorting by rememberSaveable { mutableStateOf(false) }
     val stagger = com.rostomusic.app.core.design.rememberStagger()
     val unknownArtist = stringResource(R.string.unknown_artist)
     val unknownAlbum = stringResource(R.string.unknown_album)
@@ -478,7 +479,7 @@ private fun PlaylistsTab(vm: LibraryViewModel, nav: NavController) {
     val playlists by app.library.playlists.collectAsStateWithLifecycle()
     val songs by app.library.songs.collectAsStateWithLifecycle()
     val state by app.playerState.collectAsStateWithLifecycle()
-    var creating by remember { mutableStateOf(false) }
+    var creating by rememberSaveable { mutableStateOf(false) }
     val importName = stringResource(R.string.imported_playlist)
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) vm.importPlaylist(uri, importName)

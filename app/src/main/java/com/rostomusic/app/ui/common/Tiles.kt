@@ -96,7 +96,6 @@ fun MediaTile(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(MaterialTheme.shapes.small)
                 .pressClickable(role = Role.Button, onClick = onClick)
                 .padding(top = Space.x2, bottom = Space.x1),
             horizontalAlignment = if (circle) Alignment.CenterHorizontally else Alignment.Start,

@@ -2,6 +2,7 @@ package com.rostomusic.app.ui.player
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
@@ -85,6 +86,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -174,28 +176,6 @@ fun PlayerScreen(nav: NavController, sharedScope: SharedTransitionScope, visibil
       ToneScope(pageBg) {
         val c = Rosto.colors
         Box(Modifier.fillMaxSize().background(c.background)) {
-            if (backdrop) {
-                // The picture stops where the title starts, so the text never sits on the image edge.
-                val density = androidx.compose.ui.platform.LocalDensity.current
-                val height = if (infoTop > 0f) with(density) { infoTop.toDp() } else 420.dp
-                Box(Modifier.fillMaxWidth().height(height + Space.x6)) {
-                    // Track change: crossfade with a 2 px blur that bridges the two pictures (API 31+).
-                    val blurOk = !LocalReduceMotion.current && android.os.Build.VERSION.SDK_INT >= 31
-                    var blurring by remember { mutableStateOf(false) }
-                    LaunchedEffect(song.id) { blurring = true; kotlinx.coroutines.delay(320); blurring = false }
-                    androidx.compose.animation.Crossfade(song, animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(), label = "backdrop") { s ->
-                        CoverArt(s, Modifier.fillMaxSize().blur(if (blurOk && blurring) 2.dp else 0.dp), radius = 0.dp)
-                    }
-                    Box(
-                        Modifier.fillMaxSize().background(
-                            Brush.verticalGradient(
-                                0f to c.background.copy(alpha = 0.85f), 0.18f to Color.Transparent,
-                                0.6f to Color.Transparent, 0.85f to c.background.copy(alpha = 0.85f), 1f to c.background,
-                            )
-                        )
-                    )
-                }
-            }
             Column(
                 Modifier
                     .fillMaxSize()
@@ -233,7 +213,7 @@ fun PlayerScreen(nav: NavController, sharedScope: SharedTransitionScope, visibil
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     song.title, style = MaterialTheme.typography.headlineMediumEmphasized, color = MaterialTheme.colorScheme.onSurface, maxLines = 1,
-                                    modifier = Modifier.weight(1f, fill = false).basicMarquee(iterations = if (LocalReduceMotion.current) 0 else 1),
+                                    modifier = Modifier.weight(1f, fill = false).basicMarquee(iterations = if (LocalReduceMotion.current) 0 else 1, initialDelayMillis = 1500),
                                 )
                                 if (com.rostomusic.app.core.design.LocalSongQuality.current[song.id]?.explicit == true) {
                                     Spacer(Modifier.width(Space.x2))
@@ -296,61 +276,118 @@ fun PlayerScreen(nav: NavController, sharedScope: SharedTransitionScope, visibil
                     Transport(state, onHaptic = haptic)
                     Spacer(Modifier.height(Space.x3))
 
-                    // Photo 1 : rangée de 3 pilules secondaires (répéter circulaire + 2 pilules larges aléatoire / paroles)
-                    Row(
+                    // Connected Button Group M3 Expressive (hauteur M = 48.dp, style tonal unifié, shape morphing)
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surfaceContainerLowest,
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Space.x2),
-                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val repeatIcon = if (state.repeat == QueueOps.Repeat.ONE) R.drawable.ic_repeat_1 else R.drawable.ic_repeat
-                        val repeatDesc = stringResource(
-                            when (state.repeat) {
-                                QueueOps.Repeat.OFF -> R.string.cd_repeat_off
-                                QueueOps.Repeat.ALL -> R.string.cd_repeat_all
-                                QueueOps.Repeat.ONE -> R.string.cd_repeat_one
-                            }
-                        )
-                        val repeatActive = state.repeat != QueueOps.Repeat.OFF
-                        Surface(
-                            onClick = { haptic(); app.player.cycleRepeat() },
-                            shape = CircleShape,
-                            color = if (repeatActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                        Row(
                             modifier = Modifier
-                                .size(48.dp)
-                                .semantics { role = Role.Button; contentDescription = repeatDesc },
+                                .fillMaxWidth()
+                                .padding(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                RIcon(repeatIcon, null, tint = if (repeatActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, size = 20.dp)
-                            }
-                        }
+                            val motionSpec = if (LocalReduceMotion.current) snap<androidx.compose.ui.unit.Dp>() else MaterialTheme.motionScheme.defaultSpatialSpec()
 
-                        val shuffleDesc = stringResource(if (state.shuffle) R.string.cd_shuffle_on else R.string.cd_shuffle_off)
-                        Surface(
-                            onClick = { haptic(); app.player.toggleShuffle() },
-                            shape = CircleShape,
-                            color = if (state.shuffle) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                                .semantics { role = Role.Button; contentDescription = shuffleDesc },
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                RIcon(R.drawable.ic_shuffle, null, tint = if (state.shuffle) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant, size = 20.dp)
+                            val shuffleDesc = stringResource(if (state.shuffle) R.string.cd_shuffle_on else R.string.cd_shuffle_off)
+                            val shuffleInnerCorner by animateDpAsState(
+                                targetValue = if (state.shuffle) 24.dp else 8.dp,
+                                animationSpec = motionSpec,
+                                label = "shuffleCorner",
+                            )
+                            Surface(
+                                onClick = { haptic(); app.player.toggleShuffle() },
+                                shape = RoundedCornerShape(
+                                    topStart = 24.dp,
+                                    bottomStart = 24.dp,
+                                    topEnd = shuffleInnerCorner,
+                                    bottomEnd = shuffleInnerCorner,
+                                ),
+                                color = if (state.shuffle) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .semantics {
+                                        role = Role.Button
+                                        contentDescription = shuffleDesc
+                                        stateDescription = if (state.shuffle) "Activé" else "Désactivé"
+                                    },
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    RIcon(
+                                        R.drawable.ic_shuffle,
+                                        null,
+                                        tint = if (state.shuffle) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        size = 20.dp,
+                                    )
+                                }
                             }
-                        }
 
-                        val lyricsDesc = stringResource(R.string.lyrics)
-                        Surface(
-                            onClick = { app.playerPanel.value = PlayerPanel.LYRICS },
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp)
-                                .semantics { role = Role.Button; contentDescription = lyricsDesc },
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                RIcon(R.drawable.ic_captions, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, size = 20.dp)
+                            val repeatIcon = if (state.repeat == QueueOps.Repeat.ONE) R.drawable.ic_repeat_1 else R.drawable.ic_repeat
+                            val repeatDesc = stringResource(
+                                when (state.repeat) {
+                                    QueueOps.Repeat.OFF -> R.string.cd_repeat_off
+                                    QueueOps.Repeat.ALL -> R.string.cd_repeat_all
+                                    QueueOps.Repeat.ONE -> R.string.cd_repeat_one
+                                }
+                            )
+                            val repeatActive = state.repeat != QueueOps.Repeat.OFF
+                            val repeatCorner by animateDpAsState(
+                                targetValue = if (repeatActive) 24.dp else 8.dp,
+                                animationSpec = motionSpec,
+                                label = "repeatCorner",
+                            )
+                            Surface(
+                                onClick = { haptic(); app.player.cycleRepeat() },
+                                shape = RoundedCornerShape(repeatCorner),
+                                color = if (repeatActive) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .semantics {
+                                        role = Role.Button
+                                        contentDescription = repeatDesc
+                                        stateDescription = repeatDesc
+                                    },
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    RIcon(
+                                        repeatIcon,
+                                        null,
+                                        tint = if (repeatActive) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        size = 20.dp,
+                                    )
+                                }
+                            }
+
+                            val lyricsDesc = stringResource(R.string.lyrics)
+                            Surface(
+                                onClick = { app.playerPanel.value = PlayerPanel.LYRICS },
+                                shape = RoundedCornerShape(
+                                    topStart = 8.dp,
+                                    bottomStart = 8.dp,
+                                    topEnd = 24.dp,
+                                    bottomEnd = 24.dp,
+                                ),
+                                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .semantics {
+                                        role = Role.Button
+                                        contentDescription = lyricsDesc
+                                    },
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    RIcon(
+                                        R.drawable.ic_captions,
+                                        null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        size = 20.dp,
+                                    )
+                                }
                             }
                         }
                     }
@@ -626,7 +663,7 @@ private fun PlayerVisualArea(
     ) {
         HorizontalPager(
             state = pagerState,
-            contentPadding = PaddingValues(horizontal = 56.dp),
+            contentPadding = PaddingValues(horizontal = 32.dp),
             pageSpacing = Space.x3,
             modifier = Modifier.fillMaxWidth(),
         ) { page ->
@@ -634,7 +671,7 @@ private fun PlayerVisualArea(
             val offset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
                 .absoluteValue
                 .coerceIn(0f, 1f)
-            val scale = floatLerp(1f, 0.86f, offset)
+            val scale = floatLerp(1f, 0.88f, offset)
             val corner = lerp(12.dp, 28.dp, offset)
             val elevation = lerp(8.dp, 2.dp, offset)
             val shared = if (page == safeIndex) {
@@ -653,7 +690,6 @@ private fun PlayerVisualArea(
                     .graphicsLayer {
                         scaleX = scale
                         scaleY = scale
-                        translationX = offset * 12.dp.toPx()
                     }
                     .then(shared),
             ) {
@@ -682,15 +718,14 @@ private fun Transport(state: PlayerState, onHaptic: () -> Unit) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Space.x2),
+            horizontalArrangement = Arrangement.spacedBy(Space.x3, Alignment.CenterHorizontally),
         ) {
             Surface(
                 onClick = { onHaptic(); app.player.previous() },
-                shape = RoundedCornerShape(24.dp),
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
-                    .weight(1f)
-                    .height(76.dp)
+                    .size(68.dp)
                     .semantics { role = Role.Button; contentDescription = prevDesc },
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -701,11 +736,11 @@ private fun Transport(state: PlayerState, onHaptic: () -> Unit) {
             // 1 seul bouton haute emphase (Filled) par écran
             Surface(
                 onClick = { onHaptic(); app.player.toggle() },
-                shape = RoundedCornerShape(24.dp),
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .weight(1.35f)
-                    .height(76.dp)
+                    .width(116.dp)
+                    .height(68.dp)
                     .semantics { role = Role.Button; contentDescription = playDesc },
             ) {
                 Box(contentAlignment = Alignment.Center) {
@@ -720,11 +755,10 @@ private fun Transport(state: PlayerState, onHaptic: () -> Unit) {
 
             Surface(
                 onClick = { onHaptic(); app.player.next() },
-                shape = RoundedCornerShape(24.dp),
+                shape = CircleShape,
                 color = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier
-                    .weight(1f)
-                    .height(76.dp)
+                    .size(68.dp)
                     .semantics { role = Role.Button; contentDescription = nextDesc },
             ) {
                 Box(contentAlignment = Alignment.Center) {

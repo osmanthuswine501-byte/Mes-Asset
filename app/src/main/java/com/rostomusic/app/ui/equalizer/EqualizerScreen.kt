@@ -57,6 +57,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -397,7 +398,10 @@ fun EqualizerScreen(
                                 enabled = uiState.enabled,
                                 modifier = Modifier
                                     .weight(1f)
-                                    .semantics { contentDescription = bandLabel },
+                                    .semantics {
+                                        contentDescription = bandLabel
+                                        stateDescription = "%+.1f dB".format(level / 100f)
+                                    },
                             )
                             Text(
                                 text = "%+.1f".format(level / 100f),

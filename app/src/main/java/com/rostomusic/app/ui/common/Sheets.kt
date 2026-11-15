@@ -249,6 +249,7 @@ fun SpeedSheet(onDismiss: () -> Unit) {
                 onValueChange = { value = (it * 20).roundToInt() / 20f },
                 onValueChangeFinished = { app.player.setSpeed(value) },
                 valueRange = 0.5f..2f,
+                stateDescriptionText = "%.2f×".format(value),
             )
             Spacer(Modifier.height(Space.x2))
             Row(horizontalArrangement = Arrangement.spacedBy(Space.x2)) {
