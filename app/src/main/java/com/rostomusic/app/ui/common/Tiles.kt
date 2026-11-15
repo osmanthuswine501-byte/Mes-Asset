@@ -114,7 +114,7 @@ fun MediaTile(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = if (circle) TextAlign.Center else TextAlign.Start,
                     modifier = Modifier.fillMaxWidth(),
