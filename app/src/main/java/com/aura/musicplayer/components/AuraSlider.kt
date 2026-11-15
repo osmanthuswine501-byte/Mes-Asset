@@ -41,8 +41,8 @@ enum class AuraSliderSize(
     val cornerRadius: Dp,
     val gap: Dp
 ) {
-    XS(16.dp, 44.dp, 4.dp, 8.dp, 4.dp),
-    S(24.dp, 44.dp, 4.dp, 8.dp, 4.dp),
+    XS(16.dp, 44.dp, 4.dp, 8.dp, 6.dp),
+    S(24.dp, 44.dp, 4.dp, 8.dp, 6.dp),
     M(40.dp, 52.dp, 4.dp, 12.dp, 6.dp),
     L(56.dp, 68.dp, 4.dp, 16.dp, 6.dp),
     XL(96.dp, 108.dp, 4.dp, 28.dp, 8.dp)
