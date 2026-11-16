@@ -1,32 +1,22 @@
-# Rostomusic
+# Aura Music Player — Material 3 Expressive (Jetpack Compose)
 
-Lecteur de musique local pour Android (Kotlin, Jetpack Compose, Media3). Sans compte, sans publicité, sans pistage.
+Application Android native de lecteur musical conçue de bout en bout selon les spécifications officielles [Material Design 3 Expressive](https://m3.material.io/).
 
-## Compiler
+## Architecture & Composants M3 Expressive
 
-1. Ouvrir le dossier dans Android Studio (version récente), laisser Gradle se synchroniser.
-2. Brancher un téléphone Android 7 ou plus récent, puis lancer `app`.
+- **Thème & Fondations M3E** :
+  - **Palette HCT Aura** : Surfaces lilas/lavande dynamiques (`surfaceContainerLowest` à `surfaceContainerHighest`), primaire indigo/violet (`#3F4E8D`), secondaire jaune/lime ensoleillé (`#E2E95C`), tertiaire corail/rose (`#854B64`).
+  - **Typography Scale** : Traitements éditoriaux avec hiérarchie visuelle forte, chiffres display et titres emphasized.
+  - **Motion Scheme Physics** : Ressorts spatiaux (`fastSpatial`, `defaultSpatial`, `slowSpatial`) avec rebond maîtrisé et amortissement critique sans dépassement pour les effets (`fastEffects`, `defaultEffects`).
+  - **Catalogue Shapes M3E** : Échelle de rayons (4dp, 8dp, 12dp, 16dp, 20dp, 28dp, 32dp, 48dp, Pill 1000dp) et forme organique 12 lobes (`AuraFlowerShape`).
 
-En ligne de commande : `./gradlew assembleDebug` (ou `gradle assembleDebug`). L'APK sort dans `app/build/outputs/apk/debug/`.
-
-## Fonctions
-
-- Formats : MP3, AAC/M4A, FLAC, WAV, OGG, Opus ; ALAC, AIFF et WMA selon le décodeur du téléphone.
-- Accueil bento, recherche (titres, artistes, albums, playlists, paroles), bibliothèque en 6 onglets avec tri, filtres et défilement alphabétique.
-- Lecteur plein écran : pochette ou vinyle animé avec bras, couleur tirée de la pochette, ligne fine ou forme d'onde, gestes, badges format et débit.
-- Paroles synchronisées : tags SYLT/USLT, fichiers .lrc voisins, LRC mot à mot, décalage par morceau, toucher une ligne pour y aller, éditeur avec synchronisation au tap, export .lrc, recherche LRCLIB optionnelle.
-- File d'attente réordonnable, aléatoire, répétition, fondu, vitesse 0,5× à 2×, ±10 s, minuterie, marque-pages, ReplayGain.
-- Égaliseur, renfort des basses, spatialisation.
-- Infos complètes du morceau et édition des tags et de la pochette.
-- Statistiques, playlists manuelles et automatiques, import/export M3U, sauvegarde JSON.
-- Notification, écran verrouillé, Bluetooth, Android Auto, widget d'écran d'accueil.
-
-## Structure
-
-- `domain/` : logique pure (analyseur LRC, file d'attente, M3U), testée dans `app/src/test`.
-- `data/` : base Room, réglages, scan, tags, paroles, sauvegardes.
-- `playback/` : service Media3, effets audio, minuterie, forme d'onde.
-- `core/design/` : jetons de couleur, typographie, espacements et composants.
-- `ui/` : écrans.
-
-Police Plus Jakarta Sans (OFL), icônes Lucide (ISC).
+- **Composants Clés Implémentés** :
+  - **Hero Morphing Flower Visualizer (`AuraFlowerVisualizer`)** : Fleur 12 lobes issue de l'étude de cas officielle Aura, morphant en temps réel selon le rythme, l'amplitude audio et la rotation physique.
+  - **Slider Expressif (`AuraExpressiveSlider`)** : Conforme aux cotes officielles (hauteurs 16dp à 96dp, gap de 4dp à 8dp pour le handle vertical 4dp avec extrémités arrondies). Respect absolu du sens LTR pour la progression média (règle bidirectionnalité M3).
+  - **Floating Toolbar (`AuraPlaybackFloatingToolbar`)** : Conteneur pilule de 64dp de hauteur, padding extérieur 8dp, espacement inter-items 4dp, bouton héroïque de lecture 56dp avec rebond spring physics.
+  - **Connected Button Group (`AuraConnectedButtonGroup`)** : Espacement interne strict de 2dp, bordures extérieures arrondies (pill) et coins intérieurs 4dp/8dp avec expansion dynamique sélectionnée.
+  - **Split Button (`AuraSplitButton`)** : Bouton d'action principal + déclencheur de menu avec espacement de 2dp et coins asymétriques pour le choix de qualité audio (Lossless 24-bit / Dolby Atmos).
+  - **Loading Indicator (`AuraLoadingIndicator`)** : Conteneur 48dp, géométrie morphante 38dp.
+  - **Multi-Browse Carousel (`AuraMultiBrowseCarousel`)** : Largeur dynamique adaptative et élévation 2.5D.
+  - **Feuille Acoustique DSP & EQ (`EqualizerBottomSheet`)** : Traitement audio spatial 3D et égaliseur 5 bandes vertical.
+  - **Scaffold Adaptatif (`AuraMainScreen`)** : Support compact (téléphone avec mini-player persistant) et écran large (tablette/pliables en Supporting Pane canonique).

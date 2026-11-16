@@ -1,5 +1,5 @@
--keep class org.jaudiotagger.** { *; }
--dontwarn org.jaudiotagger.**
--dontwarn java.awt.**
--dontwarn javax.imageio.**
--dontwarn javax.swing.**
+# Proguard rules for Aura Music Player
+-keepattributes *Annotation*
+-keepclassmembers class * {
+    @androidx.compose.runtime.Composable *;
+}
