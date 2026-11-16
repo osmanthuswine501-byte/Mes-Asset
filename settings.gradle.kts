@@ -1,15 +1,12 @@
 pluginManagement {
-    buildscript {
-        repositories {
-            google()
-            mavenCentral()
-        }
-        dependencies {
-            classpath("com.android.tools:r8:8.9.35")
-        }
-    }
     repositories {
-        google()
+        google {
+            content {
+                includeGroupByRegex("com\\.android.*")
+                includeGroupByRegex("com\\.google.*")
+                includeGroupByRegex("androidx.*")
+            }
+        }
         mavenCentral()
         gradlePluginPortal()
     }
@@ -21,5 +18,6 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Rostomusic"
+
+rootProject.name = "AuraMusicPlayer"
 include(":app")
