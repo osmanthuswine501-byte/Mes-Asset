@@ -93,7 +93,7 @@ fun AuraExpressiveSlider(
                 .pointerInput(enabled) {
                     if (!enabled) return@pointerInput
                     detectTapGestures { offset ->
-                        val newProgress = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
+                        val newProgress = (offset.x / this@pointerInput.size.width.toFloat()).coerceIn(0f, 1f)
                         onValueChange(newProgress)
                         onValueChangeFinished?.invoke()
                     }
@@ -103,12 +103,12 @@ fun AuraExpressiveSlider(
                     detectDragGestures(
                         onDragStart = { offset ->
                             isDragging = true
-                            dragProgress = (offset.x / size.width.toFloat()).coerceIn(0f, 1f)
+                            dragProgress = (offset.x / this@pointerInput.size.width.toFloat()).coerceIn(0f, 1f)
                             onValueChange(dragProgress)
                         },
                         onDrag = { change, _ ->
                             change.consume()
-                            dragProgress = (change.position.x / size.width.toFloat()).coerceIn(0f, 1f)
+                            dragProgress = (change.position.x / this@pointerInput.size.width.toFloat()).coerceIn(0f, 1f)
                             onValueChange(dragProgress)
                         },
                         onDragEnd = {
